@@ -1,0 +1,229 @@
+﻿@model RealMD.Models.AddressBooks
+@{
+    ViewBag.Title = "Index";
+}
+
+<br />
+
+<div class=" row col-md-8 table-responsive">
+    <div class="input-group col-md-12">
+        <input type="text" class="form-control" placeholder="Search ..." aria-label="Recipient's username" id="filter" aria-describedby="button-addon2">
+        <div class="input-group-append">
+            <button class=" btn btn-outline-secondary glyphicon glyphicon-search" type="button" id="button-addon2"></button>
+        </div>
+    </div>
+    <table class="table table-bordered table-condensed table-striped table-hover sortable" id="addressbooksTbl">
+        @if (Model.LstAddressBooks.Count() == 0)
+        {
+            <tr>
+                <td colspan="10">No Record's found.</td>
+            </tr>
+        }
+        else
+        {
+            <thead>
+                <tr class="danger">
+                    <th data-defaultsign="_19"> First Name</th>
+                    <th data-defaultsign="AZ">Last Name</th>
+                    <th data-defaultsign="AZ">Mobile No</th>
+                    <th data-defaultsign="month">Date of Birth</th>
+                    <th data-firstsort="desc">Email</th>
+                    <th data-firstsort="desc">Action</th>
+                </tr>
+            </thead>
+            foreach (var item in Model.LstAddressBooks)
+            {
+                var i = 0;
+                <tr>
+                    <td>@item.firstName</td>
+                    <td>@item.lastName</td>
+                    <td>@item.mobileNo</td>
+                    <td>@item.dateofBirth</td>
+                    <td>@item.email</td>
+                    <td style="display:none">@item.id</td>
+                    <td>
+                        <button class="btn btn-primary" type="submit" id="edit">Edit</button>
+                        <button class="btn btn-primary" type="submit" onclick="Remove(@item.id)" id="delete">Delete</button>
+                    </td>
+                </tr>
+            }
+        }
+    </table>
+</div>
+<div class="row col-md-4">
+    <form action="" method="post" data-ref="@Model.AddressBook">
+        <div class="input-group col-md-12">
+
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.AddressBook.firstName, htmlAttributes: new { @class = "control-label col-md-3" })
+            <div class="col-md-9">
+                <input type="hidden" value="<%= Html.AttributeEncode(model.AddressBook.id) %>" id="txtId" name="Id" />
+                @Html.EditorFor(model => model.AddressBook.firstName, new { htmlAttributes = new { @class = "form-control", id = "txtFirstName" } })
+                @Html.ValidationMessageFor(model => model.AddressBook.firstName, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.AddressBook.lastName, htmlAttributes: new { @class = "control-label col-md-3" })
+            <div class="col-md-9">
+                @Html.EditorFor(model => model.AddressBook.lastName, new { htmlAttributes = new { @class = "form-control", id = "txtLastName" } })
+                @Html.ValidationMessageFor(model => model.AddressBook.lastName, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.AddressBook.mobileNo, htmlAttributes: new { @class = "control-label col-md-3" })
+            <div class="col-md-9">
+                @Html.EditorFor(model => model.AddressBook.mobileNo, new { htmlAttributes = new { @class = "form-control", id = "txtMobileNo" } })
+                @Html.ValidationMessageFor(model => model.AddressBook.mobileNo, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.AddressBook.dateofBirth, htmlAttributes: new { @class = "control-label col-md-3" })
+            <div class="col-md-9">
+                @Html.EditorFor(model => model.AddressBook.dateofBirth, new { htmlAttributes = new { @class = "form-control", id = "txtDateofBirth" } })
+                @Html.ValidationMessageFor(model => model.AddressBook.dateofBirth, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.AddressBook.email, htmlAttributes: new { @class = "control-label col-md-3" })
+            <div class="col-md-9">
+                @Html.EditorFor(model => model.AddressBook.email, new { htmlAttributes = new { @class = "form-control", id = "txtEmail" } })
+                @Html.ValidationMessageFor(model => model.AddressBook.email, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <br /><br />
+        <div class="form-group">
+            <label class="control-label col-md-3"></label>
+            <div class="col-md-9">
+                <button class="btn btn-primary" type="submit" name="send" onclick='Edit(this,@Html.Raw(Json.Encode(Model)));' id="save">Save</button>
+                <button class="btn" type="button" id="cancel">Clear</button>
+            </div>
+        </div>
+    </form>
+</div>
+@*@if (@Model.AddressBook.id > 0)
+    {
+        <div class="col-md-4" id="addressBook">
+            @Html.Partial("_Addressbook", Model.AddressBook);
+        </div>
+    }*@
+@section scripts{
+    <script src="~/Scripts/jquery-ui-1.12.1.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#button-addon2").click(function (evt) {
+                var txt = $("#filter").val();
+                $.ajax({
+                    url: '/AddressBook/GetAddressBooks',
+                    type: "GET",
+                    dataType: "JSON",
+                    data: { firstName: txt },
+                    success: function (response) {
+                        //location.reload();
+                    }
+                    ,
+                    error: function (xhr) {
+                        location.reload();
+                        alert('No Valid Data');
+                    }
+                });
+            });
+
+            $("#save").click(function (evt) {
+                evt.preventDefault();
+                var addressbook = {
+                    firstName: $("#txtFirstName").val(),
+                    lastName: $("#txtLastName").val(),
+                    mobileNo: $("#txtMobileNo").val(),
+                    dateofBirth: $("#txtDateofBirth").val(),
+                    email: $("#txtEmail").val(),
+                    id: $("#txtId").val()
+                }
+                //console.log(addressbook);
+                $.ajax({
+                    type: "post",
+                    type: "post",
+                    url: "/AddressBook/Save",
+                    data: addressbook,
+                    datatype: "json",
+                    cache: false,
+                    success: function (data) {
+                        alert("Saved Successfully");
+                    },
+                    error: function (xhr) {
+                        location.reload();
+                        alert('Saved Successfully');
+                    }
+                });
+            });
+
+            //$("#delete").click(function (evt) {
+            //    evt.preventDefault();
+            //    alert(1)
+            //    $(document).on('click', '#delete tr', function () {
+            //        var tableData = $(this).children("td").map(function () {
+            //            return $(this).text();
+            //        }).get();
+
+            //        $("#txtId").val($.trim(tableData[5]));
+            //        $.ajax({
+            //            type: "post",
+            //            url: "/AddressBook/Delete",
+            //            data: { id: $("#txtId").val() },
+            //            datatype: "json",
+            //            cache: false,
+            //            success: function (data) {
+            //                alert('Deleted Successfully');
+            //            },
+            //            error: function (xhr) {
+            //                location.reload();
+            //                alert('Deleted Successfully');
+            //            }
+            //        });
+            //    });
+
+            //});
+
+            $(document).on('click', '#addressbooksTbl tr', function () {
+                var tableData = $(this).children("td").map(function () {
+                    return $(this).text();
+                }).get();
+
+                $("#txtFirstName").val($.trim(tableData[0]));
+                $("#txtLastName").val($.trim(tableData[1]));
+                $("#txtMobileNo").val($.trim(tableData[2]));
+                $("#txtDateofBirth").val($.trim(tableData[3]));
+                $("#txtEmail").val($.trim(tableData[4]));
+                $("#txtId").val($.trim(tableData[5]));
+
+            });
+
+            $("#cancel").click(function (evt) {
+                evt.preventDefault();
+                $("#txtFirstName").val("");
+                $("#txtLastName").val("");
+                $("#txtMobileNo").val("");
+                $("#txtDateofBirth").val("");
+                $("#txtEmail").val("");
+                $("#txtId").val(0);
+            });
+        });
+        function Remove(id) {
+            $.ajax({
+                type: "post",
+                url: "/AddressBook/Delete",
+                data: { id: id },
+                datatype: "json",
+                cache: false,
+                success: function (data) {
+                    alert('Deleted Successfully');
+                },
+                error: function (xhr) {
+                    location.reload();
+                    alert('Deleted Successfully');
+                }
+            });
+        };
+    </script>
+}
+
